@@ -1,10 +1,13 @@
+from decimal import Decimal
+
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, UserManager
-from django.db import models
 
 from apps.general.validation_phone import check_uzb_number
-from apps.general.roles import RoleChoices,DegreeChoices
-from apps.general.models import University
+from apps.general.models import University, BaseModel
 
 
 class CustomUserManager(UserManager):
@@ -30,29 +33,61 @@ class CustomUserManager(UserManager):
         extra_fields.setdefault('is_superuser', True)
         return self._create_user(phone_number, password, **extra_fields)
 
-class CustomUser(AbstractUser):
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-    user_image = models.ImageField(upload_to='user_images/', blank=True, null=True)
-    user_type = models.CharField(max_length=50, blank=True, null=True)
+
+class CustomUser(AbstractUser,BaseModel):
+    class RoleChoices(models.TextChoices):
+        STUDENT = 'student', 'Student'
+        SPONSOR = 'sponsor', 'Sponsor'
+        ADMIN = 'admin', 'Admin'
+
+    class DegreeChoices(models.TextChoices):
+        BACHELOR = 'bachelor', 'Bachelor'
+        MAGISTR = 'magis', 'Magistr'
+
+    username = None
+    phone_number = models.CharField(max_length=13, validators=[check_uzb_number],unique=True)
+    user_image = models.ImageField(upload_to='user_images/%Y/%m/%d', blank=True, null=True)
+    user_type = models.CharField(max_length=50, blank=True, null=True)  # ????
     role = models.CharField(
         max_length=10,
         choices=RoleChoices.choices,
+        default=RoleChoices.STUDENT,
     )
-    balance = models.DecimalField(max_digits=20, decimal_places=2)
+    balance = models.DecimalField(
+        max_digits=50,
+        decimal_places=2,
+        default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+    )
+    available = models.DecimalField(
+        max_digits=50,
+        decimal_places=2,
+        default=Decimal('0'),
+        validators=[MinValueValidator(Decimal('0'))],
+    )
     university = models.ForeignKey(
         University,
         on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
     )
     degree = models.CharField(
         max_length=50,
-        choices=DegreeChoices.choices
+        choices=DegreeChoices.choices,
+        blank=True,
+        null=True,
     )
-
 
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
     objects = CustomUserManager()
 
+    def clean(self):
+        if self.role == self.RoleChoices.STUDENT and not self.university:
+            raise ValidationError({'university':'The University area for the Student must be filled'})
+
     def __str__(self):
         return f"{self.phone_number} - {self.first_name} {self.last_name}"
+
+UserModel = CustomUser

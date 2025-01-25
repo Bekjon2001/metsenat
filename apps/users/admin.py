@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from apps.users.models import CustomUser
+
+
+class CustomUserAdmin(admin.ModelAdmin):
+    model = CustomUser
+    ordering = ('phone_number',)
