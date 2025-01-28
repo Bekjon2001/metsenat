@@ -40,17 +40,3 @@ pip install -r requirements.txt
 ```
 # Available APIs
 
-1.**Login API**
-   [http://127.0.0.1:8000/en/auth/login_page/](http://127.0.0.1:8000/en/auth/login_page/)
-
-2.**Register API**
-   [http://127.0.0.1:8000/en/auth/register_page/](http://127.0.0.1:8000/en/auth/register_page/)
-
-3.**Shop page**
-   [http://127.0.0.1:8000/en/products/](http://127.0.0.1:8000/en/products/)
-
-4**Contact page**
-   [http://127.0.0.1:8000/en/contact/](http://127.0.0.1:8000/en/contact/)
-
-5.**About page**
-   [http://127.0.0.1:8000/en/about/(http://127.0.0.1:8000/en/about/)

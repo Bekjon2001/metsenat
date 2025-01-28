@@ -22,4 +22,7 @@ from apps import appeals
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('',include('apps.appeals.urls')),
+    path('users/',include('apps.users.urls')),
+    path('student-sponsors/',include('apps.sponsors.urls')),
+    path('general/',include('apps.general.urls')),
 ]

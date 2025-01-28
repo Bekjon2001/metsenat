@@ -1,8 +1,10 @@
-from django.core.validators import RegexValidator
+import re
+from django.core.exceptions import ValidationError
 
-check_uzb_number = RegexValidator(
-    regex=r'^\+998\d{9}$',
-    message='Invalid phone number format. A valid number starts with +998 followed by 9 digits.',
-    code='invalid_number'
-)
+def check_uzb_number(value):
+    """Telefon raqami validatsiyasi"""
+    if not re.match(r"^\+998\d{9}$", value):
+        raise ValidationError("Invalid phone number")
+    return value
+
 

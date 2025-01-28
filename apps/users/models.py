@@ -1,4 +1,5 @@
 from decimal import Decimal
+from rest_framework.settings import api_settings
 
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -7,7 +8,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser, UserManager
 
 from apps.general.validation_phone import check_uzb_number
-from apps.general.models import University, BaseModel
+
 
 
 class CustomUserManager(UserManager):
@@ -34,7 +35,7 @@ class CustomUserManager(UserManager):
         return self._create_user(phone_number, password, **extra_fields)
 
 
-class CustomUser(AbstractUser,BaseModel):
+class CustomUser(AbstractUser):
     class RoleChoices(models.TextChoices):
         STUDENT = 'student', 'Student'
         SPONSOR = 'sponsor', 'Sponsor'
@@ -44,12 +45,21 @@ class CustomUser(AbstractUser,BaseModel):
         BACHELOR = 'bachelor', 'Bachelor'
         MAGISTR = 'magis', 'Magistr'
 
+    class LegalType(models.TextChoices):
+        personal = 'personal', 'Personal'
+        legal = 'legal' 'Legal'
     username = None
     phone_number = models.CharField(max_length=13, validators=[check_uzb_number],unique=True)
     user_image = models.ImageField(upload_to='user_images/%Y/%m/%d', blank=True, null=True)
-    user_type = models.CharField(max_length=50, blank=True, null=True)  # ????
+    user_type = models.CharField(
+        max_length=100,
+        choices=LegalType.choices,
+        default=LegalType.personal,
+        blank=True,
+        null=True,
+    )
     role = models.CharField(
-        max_length=10,
+        max_length=100,
         choices=RoleChoices.choices,
         default=RoleChoices.STUDENT,
     )
@@ -66,7 +76,7 @@ class CustomUser(AbstractUser,BaseModel):
         validators=[MinValueValidator(Decimal('0'))],
     )
     university = models.ForeignKey(
-        University,
+        "general.University",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
